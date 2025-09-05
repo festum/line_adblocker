@@ -155,7 +155,8 @@ public class ReadChecker implements IHook {
         boolean noGroup = true;
 
         if (cursor.moveToFirst()) {
-            String groupName = cursor.getString(cursor.getColumnIndex("group_name"));
+            int groupNameIndex = cursor.getColumnIndex("group_name");
+            String groupName = groupNameIndex != -1 ? cursor.getString(groupNameIndex) : null;
             noGroup = groupName == null || groupName.isEmpty();
         }
 
@@ -205,9 +206,13 @@ public class ReadChecker implements IHook {
         Map<String, DataItem> dataItemMap = new HashMap<>();
 
         while (cursor.moveToNext()) {
-            String serverId = cursor.getString(0);
-            String content = cursor.getString(1);
-            String createdTime = cursor.getString(2);
+            int serverIdIndex = cursor.getColumnIndex("server_id");
+            int contentIndex = cursor.getColumnIndex("content");
+            int createdTimeIndex = cursor.getColumnIndex("created_time");
+
+            String serverId = serverIdIndex != -1 ? cursor.getString(serverIdIndex) : "";
+            String content = contentIndex != -1 ? cursor.getString(contentIndex) : "";
+            String createdTime = createdTimeIndex != -1 ? cursor.getString(createdTimeIndex) : "";
 
             List<String> user_nameList = getuser_namesForServerId(serverId);
 
@@ -425,10 +430,15 @@ public class ReadChecker implements IHook {
             Cursor cursor = limeDatabase.rawQuery(query, new String[]{groupId, timeEpochStr, "%" + checkedUser + "%"});
 
             while (cursor.moveToNext()) {
-                String previousServerId = cursor.getString(cursor.getColumnIndex("server_id"));
-                String previousContent = cursor.getString(cursor.getColumnIndex("content"));
-                String previousTimeEpochStr = cursor.getString(cursor.getColumnIndex("created_time"));
-                String previousUserName = cursor.getString(cursor.getColumnIndex("user_name"));
+                int serverIdIndex = cursor.getColumnIndex("server_id");
+                int contentIndex = cursor.getColumnIndex("content");
+                int createdTimeIndex = cursor.getColumnIndex("created_time");
+                int userNameIndex = cursor.getColumnIndex("user_name");
+
+                String previousServerId = serverIdIndex != -1 ? cursor.getString(serverIdIndex) : "";
+                String previousContent = contentIndex != -1 ? cursor.getString(contentIndex) : "";
+                String previousTimeEpochStr = createdTimeIndex != -1 ? cursor.getString(createdTimeIndex) : "";
+                String previousUserName = userNameIndex != -1 ? cursor.getString(userNameIndex) : "";
                 String previousTimeFormatted = formatMessageTime(previousTimeEpochStr);
 
                 String updatedUserName = previousUserName + (previousUserName.isEmpty() ? "" : "\n") + checkedUser;
@@ -592,8 +602,11 @@ public class ReadChecker implements IHook {
             cursor = limeDatabase.rawQuery(selectOtherQuery, new String[]{groupId, "%-" + user_name + "%"});
 
             while (cursor.moveToNext()) {
-                String serverId = cursor.getString(cursor.getColumnIndex("server_id"));
-                String existingUserName = cursor.getString(cursor.getColumnIndex("user_name"));
+                int serverIdIndex = cursor.getColumnIndex("server_id");
+                int userNameIndex = cursor.getColumnIndex("user_name");
+
+                String serverId = serverIdIndex != -1 ? cursor.getString(serverIdIndex) : "";
+                String existingUserName = userNameIndex != -1 ? cursor.getString(userNameIndex) : "";
 
                 // `user_name`にすでに同じ名前がないかチェック
                 if (!existingUserName.contains(user_name)) {
